@@ -19,7 +19,7 @@ void InitializeWorkItem(WORK_ITEM* pItem, int Index);
 DWORD WINAPI ExecuteWorkItem(LPVOID lPtr);
 DWORD WINAPI CheckQueueIndexThread(LPVOID lPtr);
 HANDLE Init(void);
-int CleanUpThreads(HANDLE *hThread);
+int CleanUpHandler(HANDLE *hThread);
 
 /*
 Name: InitializeWorkItem
@@ -136,15 +136,15 @@ HANDLE Init(void) {
 }
 
 /*
-Name: CleanUpThreads
+Name: CleanUpHandler
 
 Description: 
-Close all created thread.
+Close all created handler.
 
-Return: 0 - All threads have been closed.  
-        1 - Some, if not all threads failed to close.
+Return: 0 - All handlers have been closed.  
+        1 - Some, if not all handlers failed to close.
 */
-int CleanUpThreads(HANDLE *hThread) {
+int CleanUpHandler(HANDLE *hThread) {
     int ret = 0; 
 
     if (CloseHandle(*hThread) == 0) {
@@ -157,6 +157,11 @@ int CleanUpThreads(HANDLE *hThread) {
             printf("ExecuteWorkItems thread %i failed to close\n", i);
             ret = 1;
         }
+    }
+
+    if (CloseHandle(qSem) == 0) {
+        printf("semaphores failed to close\n");
+        ret = 1;
     }
 
     return ret;
@@ -182,7 +187,7 @@ int main(void) {
     WaitForSingleObject(hThread, INFINITE);
     WaitForMultipleObjects(threadCount, hThreadExecutionWork, TRUE, INFINITE);
 
-    ret = CleanUpThreads(&hThread);
+    ret = CleanUpHandler(&hThread);
 
     system("pause");
     return ret;
